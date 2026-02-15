@@ -1,0 +1,322 @@
+# STACK
+
+# REGS
+
+# FLAGS
+
+# SEED
+
+# MODE
+MTRIG: DEG
+MFMT: FIX 4
+
+# EQUATION LIST
+EQNPTR: 0
+EQN
+EQNEND
+
+# PROGRAM
+PTR: 0
+PGM
+  LBL O
+  RCL H
+  RCL V
+  RCL C
+  RCL P
+  VIEW D
+  RTN
+  LBL Z
+  CLx
+  ENTER
+  4.902800118E12
+  3.9860044188E14
+  INPUT G
+  CLx
+  ENTER
+  ENTER
+  1737100
+  6378137
+  INPUT R
+  RTN
+  LBL H
+  1000
+  \mul;
+  STO H
+  XEQ Z
+  EQN: SQRT( G \div; ( R + H ) )
+  STO V
+  EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
+  STO C
+  EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
+  STO P
+  EQN: ( P \div; 86164.0905 )
+  STO D
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  RCL P
+  60
+  \div;
+  STO P
+  GTO O
+  LBL V
+  STO V
+  XEQ Z
+  EQN: ( G \div; V ^ 2 ) - R
+  STO H
+  EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
+  STO C
+  EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
+  STO P
+  EQN: ( P \div; 86164.0905 )
+  STO D
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  RCL P
+  60
+  \div;
+  STO P
+  GTO O
+  LBL P
+  60
+  \mul;
+  STO P
+  XEQ Z
+  RCL P
+  2
+  \pi;
+  \mul;
+  \div;
+  x\sqr;
+  RCL G
+  \mul;
+  3
+  \powx;\sqrt;y
+  RCL R
+  -
+  STO H
+  EQN: SQRT( G \div; ( R + H ) )
+  STO V
+  EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
+  STO C
+  EQN: ( P \div; 86164.0905 )
+  STO D
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  RCL P
+  60
+  \div;
+  STO P
+  GTO O
+  LBL D
+  STO D
+  XEQ Z
+  EQN: D \mul; 86164.0905
+  STO P
+  2
+  \pi;
+  \mul;
+  \div;
+  x\sqr;
+  RCL G
+  \mul;
+  3
+  \powx;\sqrt;y
+  RCL R
+  -
+  STO H
+  EQN: SQRT( G \div; ( R + H ) )
+  STO V
+  EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
+  STO C
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  RCL P
+  60
+  \div;
+  STO P
+  GTO O
+  LBL C
+  1000
+  \mul;
+  STO C
+  XEQ Z
+  EQN: C \div; ( 2 \mul; \pi; ) - R
+  STO H
+  EQN: SQRT( G \div; ( R + H ) )
+  STO V
+  EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
+  STO P
+  EQN: ( P \div; 86164.0905 )
+  STO D
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  RCL P
+  60
+  \div;
+  STO P
+  GTO O
+  LBL A
+  -100
+  STO i
+  149597870.7
+  STO\blpar;i\brpar;
+  -101
+  STO i
+  366.25636
+  STO\blpar;i\brpar;
+  -102
+  STO i
+  299792458
+  STO\blpar;i\brpar;
+  -900
+  STO i
+  1.327124400189E20
+  STO\blpar;i\brpar;
+  -901
+  STO i
+  2.203209E13
+  STO\blpar;i\brpar;
+  -902
+  STO i
+  3.248585926E14
+  STO\blpar;i\brpar;
+  -903
+  STO i
+  3.9860044188E14
+  STO\blpar;i\brpar;
+  -904
+  STO i
+  4.2828372E13
+  STO\blpar;i\brpar;
+  -905
+  STO i
+  1.266865349E17
+  STO\blpar;i\brpar;
+  -906
+  STO i
+  3.79311879E16
+  STO\blpar;i\brpar;
+  -907
+  STO i
+  5.7939399E15
+  STO\blpar;i\brpar;
+  -908
+  STO i
+  6.8365299E15
+  STO\blpar;i\brpar;
+  -909
+  STO i
+  4.902800118E12
+  STO\blpar;i\brpar;
+  -910
+  STO i
+  696342000
+  STO\blpar;i\brpar;
+  -911
+  STO i
+  2440000
+  STO\blpar;i\brpar;
+  -912
+  STO i
+  6051800
+  STO\blpar;i\brpar;
+  -913
+  STO i
+  6378137
+  STO\blpar;i\brpar;
+  -914
+  STO i
+  3396200
+  STO\blpar;i\brpar;
+  -915
+  STO i
+  71492000
+  STO\blpar;i\brpar;
+  -916
+  STO i
+  60268000
+  STO\blpar;i\brpar;
+  -917
+  STO i
+  25559000
+  STO\blpar;i\brpar;
+  -918
+  STO i
+  24764000
+  STO\blpar;i\brpar;
+  -919
+  STO i
+  1737100
+  STO\blpar;i\brpar;
+  -921
+  STO i
+  57910000
+  STO\blpar;i\brpar;
+  -922
+  STO i
+  108200000
+  STO\blpar;i\brpar;
+  -923
+  STO i
+  149600000
+  STO\blpar;i\brpar;
+  -924
+  STO i
+  227900000
+  STO\blpar;i\brpar;
+  -925
+  STO i
+  778500000
+  STO\blpar;i\brpar;
+  -926
+  STO i
+  1433449370
+  STO\blpar;i\brpar;
+  -927
+  STO i
+  2871000000
+  STO\blpar;i\brpar;
+  -928
+  STO i
+  4500000000
+  STO\blpar;i\brpar;
+  -929
+  STO i
+  384400
+  STO\blpar;i\brpar;
+  CLx
+  ENTER
+  ENTER
+  ENTER
+  RTN
+PGMEND
