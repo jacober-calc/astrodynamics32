@@ -1,3 +1,5 @@
+![Social Media Preview](assets/astrodynamics32_social_preview.png)
+
 # astrodynamics Statefile
 
 ## Install and Download
