@@ -12,6 +12,20 @@ Consulting this **Readme.md** before use is highly recommended. The program is s
 
 Using the program to calculate perfectly circular orbits from any main body in the Solar System (including the MOON) is really easy. The user uses a single variable (either orbit height, velocity, period, sidereal days, or circumference) to produce orbital data for the remaining variables. The Statefile leverages the DM32 four-line display to showcase orbital data in a clean and wildly understandable way.
 
+Every *Initiator Program* follows the same path. It converts its known value into the orbit radius r, measured from the center of the main body, and every other value follows from r:
+
+```mermaid
+flowchart TD
+    nH["XEQ H: height H"] --> nZ
+    nV["XEQ V: velocity V"] --> nZ
+    nC["XEQ C: circumference C"] --> nZ
+    nP["XEQ P: period P"] --> nZ
+    nD["XEQ D: sidereal days D"] --> nZ
+    nZ["LBL Z: prompt for G and R"] --> nR["Solve for orbit radius r"]
+    nR --> nAll["r = R + H<br/>V = square root of G / r<br/>C = 2 pi r<br/>P = 2 pi times square root of r cubed / G<br/>D = P / 86164.0905 s"]
+    nAll --> nO["LBL O: T height, Z velocity, Y circumference, X period<br/>VIEW D"]
+```
+
 ### First Sample Problem ###
 
 You wish to calculate orbital information for the International Space Station which has a mean orbital height of 407 km.
@@ -53,6 +67,10 @@ The user can complete the program and display by selecting R/S (Note: that press
 
 We can compare our results to see how accurate our program runs. The ISS has a mean orbital velocity of 7.66 km/sec which our calculator displays accurately 7,664.601 m/s. While the orbit of the ISS is not a perfect circle, the eccenticity of it's orbit is low enough that using mean values, we can apply the theoretic oribital calculations simplified with a perfectly circular orbit and get very close results.
 
+The charts show how velocity and period change with height around the EARTH, using the program's EARTH constants. Higher orbits are slower and take longer. At about 35,786 km the period equals one sidereal day (D = 1), which is the geostationary orbit; at half that period (D = 0.5) sit the GPS satellites.
+
+![Circular orbits around EARTH](assets/earth_orbits.svg)
+
 ## Solar System Constants
 
 The Statefile contains a routine program to store gravitational parameters, radii and relevant distances for planets within the Solar System and the MOON. This program can be run by the user by selecting XEQ A. The values are stored in indirect registers and are available between calculator states and are persistent with CLEAR VAR commands (but not calculator resets, which is why the program is available in the statefile to be run on reboots).
@@ -62,6 +80,8 @@ There is some method to the madness of how these values have been stored in the 
 All gravitational constant values are stored in registers -90X with X being the main body variable outlined above. All radius are stored in registers -91X. And all distances are stored in registers -92X. Note that the distance value for the MOON is from the EARTH and not from the SUN.
 
 ![Values for indirect registers.](assets/constants.png)
+
+![Indirect register map](assets/register_map.svg)
 
 You can find more information how how to use indirect registers and storing these values in the [DM32 User Manual](https://technical.swissmicros.com/dm32/doc/dm32_user_manual.html#indirect_only).
 
@@ -92,6 +112,10 @@ We can see in the VIEW display that the value we inputted for the sidereal days 
 We can see that the velocity of EARTH travalling around the SUN is 29,784.708 m/s and the circumference of this orbit is 939,950,152.948. We can actually already see that our calculation is a little off from the real life values because the height of the orbit is less than the official value of one astronomical unit (AU) which is the distance of the EARTH from the SUN (what should be the exact value of this height). But that is okay because we know what is happening here, and it is owning to the fact we are calculating based on a perfectly circular orbit. The difference between the actual value and what our calcaultion produced is 0.466%, so negliable for the purposes of understanding orbital mechanics.
 
 The EARTH has an average velocity around the SUN of 29,784.8 m/s which is very near our calculation. This is owning to the low eccentricity of EARTH's real orbit around the SUN which makes cirular orbit calculations especially for speed and distances much more accurate to real world.
+
+The same formula, V = √(μ ÷ r), gives the circular orbital velocity at each planet's distance from the SUN stored in registers −921 to −928. On a log-log scale the planets fall on a single straight line: velocity falls with the square root of distance.
+
+![Circular orbital velocity of the planets](assets/planet_velocities.svg)
 
 ## Recalculation Feature
 
