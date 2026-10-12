@@ -152,7 +152,7 @@ This humble Statefile and the tremendous (and often tedious) work that went into
 ### By jacober-calc for SwissMicros DM32
 
 > - [SwissMicros Website](https://www.swissmicros.com)
-> - [DM32 product page](https://www.swissmicros.com/product/model-dm32)
-> - [SwissMicros full products page](https://www.swissmicros.com/products)
+> - [DM32 product page](https://www.swissmicros.com/en/products/dm32)
+> - [SwissMicros full products page](https://www.swissmicros.com/en/shop)
 > - [DM32 Online User Manual](https://technical.swissmicros.com/dm32/doc/dm32_user_manual.html)
 > - [SwissMicros Calculator Forum](https://forum.swissmicros.com/index.php)
