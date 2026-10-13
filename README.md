@@ -1,149 +1,655 @@
-![Social Media Preview](assets/astrodynamics32_social_preview.png)
+![Social Media Preview](assets/orbitcalc32_social_preview.png)
 
-# astrodynamics Statefile
+# orbitcalc Statefile
 
-## Install and Download
+## TABLE OF CONTENTS
 
-You can find instructions on how to install .d32 Statefiles to your calculator [via the DM32 User Manual](https://technical.swissmicros.com/dm32/doc/dm32_user_manual.html#_saving_and_loading_a_state). The process is extremely simple. You can download the .zip file from the release page from this GitHub repository.
+1. [Introduction](#1-introduction)
+2. [Theory of Operations](#2-theory-of-operations)
+3. [Variable Definitions](#3-variable-definitions)
+4. [Program Descriptions](#4-program-descriptions)
+5. [Operating Instructions](#5-operating-instructions)
+6. [Example Calculations](#6-example-calculations)
+7. [Quick Reference](#7-quick-reference)
+8. [Program Listing](#8-program-listing)
 
-Consulting this **Readme.md** before use is highly recommended. The program is simple enough to use, but the readme contains useful information. The file you will want to install on your calculator from the .zip file is **Astrodynamics.d32**.
+---
 
-## Using the Statefile
+## 1. INTRODUCTION
 
-Using the program to calculate perfectly circular orbits from any main body in the Solar System (including the MOON) is really easy. The user uses a single variable (either orbit height, velocity, period, sidereal days, or circumference) to produce orbital data for the remaining variables. The Statefile leverages the DM32 four-line display to showcase orbital data in a clean and wildly understandable way.
+This program suite provides circular-orbit calculations for the SwissMicros DM32 calculator. From any one known orbital value (height, velocity, circumference, period, or revolutions per sidereal day) it calculates all of the others, and it stores gravitational parameters, radii, and distances for the SUN, the planets, and the MOON.
 
-Every *Initiator Program* follows the same path. It converts its known value into the orbit radius r, measured from the center of the main body, and every other value follows from r:
+### 1.1 Purpose
+
+The program enables users to:
+
+- Calculate a circular orbit from any one of five known values
+- Work around EARTH by default, or around any other body with a few keystrokes
+- Recall stored constants for the SUN, all eight planets, and the MOON
+- Compare orbits through the number of revolutions per sidereal day
+
+### 1.2 System Requirements
+
+SwissMicros DM32 calculator with RPN operating system. Program requires 268 program steps in 9 labels. Flag 0 selects whether the program prompts for the main body (section 5.2). The Solar System constants use DM32 Global registers.
+
+### 1.3 Install and Download
+
+Copy **ORBITCALC.d32** to the `/STATE` folder of the DM32's internal USB disk, then load it from the calculator. Instructions are available [via the DM32 User Manual](https://technical.swissmicros.com/dm32/doc/dm32_user_manual.html#_saving_and_loading_a_state).
+
+After loading, press `[XEQ] [A]` once to store the Solar System constants (section 2.4).
+
+---
+
+## 2. THEORY OF OPERATIONS
+
+### 2.1 Circular Orbits
+
+For a circular orbit of radius r around a body with gravitational parameter μ (G) and radius R:
+
+```
+r = R + H                     Orbit radius from the body's centre
+V = √(G ÷ r)                  Orbital velocity, m/s
+C = 2π r                      Circumference
+P = 2π √(r³ ÷ G)              Period, s
+D = 86164.0905 ÷ P            Revolutions per sidereal day
+```
+
+One sidereal day, 86,164.0905 seconds, is the time the EARTH takes to turn once relative to the stars. D = 1 is therefore an orbit that keeps pace with the EARTH's rotation: the geostationary orbit.
+
+### 2.2 Initiator Programs
+
+Each initiator program prompts for the one value it is named for, solves for the orbit radius, and calculates the rest. LBL R then converts the results to display units and LBL O displays them.
 
 ```mermaid
 flowchart TD
-    nH["XEQ H: height H"] --> nZ
-    nV["XEQ V: velocity V"] --> nZ
-    nC["XEQ C: circumference C"] --> nZ
-    nP["XEQ P: period P"] --> nZ
-    nD["XEQ D: sidereal days D"] --> nZ
-    nZ["LBL Z: prompt for G and R"] --> nR["Solve for orbit radius r"]
-    nR --> nAll["r = R + H<br/>V = square root of G / r<br/>C = 2 pi r<br/>P = 2 pi times square root of r cubed / G<br/>D = P / 86164.0905 s"]
-    nAll --> nO["LBL O: T height, Z velocity, Y circumference, X period<br/>VIEW D"]
+    nH["XEQ H: prompts H? km"] --> nZ
+    nV["XEQ V: prompts V? m/s"] --> nZ
+    nC["XEQ C: prompts C? km"] --> nZ
+    nP["XEQ P: prompts P? minutes"] --> nZ
+    nD["XEQ D: prompts D? revolutions per sidereal day"] --> nZ
+    nZ["LBL Z: EARTH constants, or prompts G? and R? if Flag 0 is set"] --> nR["Solve for orbit radius r<br/>then H, V, C, P, and D"]
+    nR --> nU["LBL R: P to minutes, H and C to km"]
+    nU --> nO["LBL O: T circumference, Z height, Y velocity, X period<br/>VIEW D, then R/S"]
 ```
 
-### First Sample Problem ###
-
-You wish to calculate orbital information for the International Space Station which has a mean orbital height of 407 km.
-
-The known variable in this case is the height of the orbit from the surface of EARTH (407 km). What the user desires to know is the velocity, period, circumference, and sidereal day comparison of the orbit the station holds. We can confirm whether our calculation is correct by comparing the known mean orbital velocity of the ISS.
-
-![First input the 407 km varible into the x-register.](assets/Example1.bmp)
-
-User inputs 407 into the x-register. The user will run the **LBL H** *Initiator Program* because they are using the height variable as the known input. Start this program by pressing **XEQ H**.
-
-![The first sub-routine will run and the user will be prompted for the Standard Gravitational Parameter and the radius of the main body.](assets/Example2.bmp)
-
-The first sub-routine will run and the user will be prompted to input the [Standard Gravitational Parameter](https://en.m.wikipedia.org/wiki/Standard_gravitational_parameter) of the main body.
-
-Note that values for the EARTH are present just above the input field in the y-register and values for the MOON are located above those in the z-register. These common values are pre-set for the user and can be used by selecting the R(down) key and placing the figures into the input field. The user can also input their own custom values or (aftering first running the LBL A program to store the values into indirect registers) can pull up values for any main body in the Solar System.
-
-![User selects the EARTH value for our first problem.](assets/Example3.bmp)
-
-Since for our first problem we are using an orbit around the EARTH, we are going to move the values for EARTH into the input field and press R/S to continue the sub-routine.
-
-![User is prompted for radius](assets/Example5.bmp)
-
-Following the gravitational parameter, the user will be prompted to input a value for the radius of the main body. This value is in meters. If you have selected the EARTH or MOON from the previous G input, be sure to select the same for this value, same for any custom value or indirect register value used.
-
-![Selecting the EARTH value for radius for our first problem](assets/Example6.bmp)
-
-The program continues to run and the LBL O sub-routine completes with the values displayed on the four-line display in addition to a VIEW of the sidereal comparion result.
-
-![Final display results of the program.](assets/Example7.bmp)
-
-The user can complete the program and display by selecting R/S (Note: that pressing C will also close the VIEW display but the program pointer will remain at line O07 and will not return to the top, ENTER can also be used by will push the stack up resulting in the height being dropped and the sidereal comparion taking up the x-register, the program pointer will remain at line O07). This will close the VIEW of the sidereal comparsion (which is not always relevant in orbital calculations beyond EARTH) and display the most common values on the four-line display. The order is as follows:
-
-> - **T-REGISTER** / Height in km / Variable H
-> - **Z-REGISTER** / Velocity in m/s / Variable V
-> - **Y-REGISTER** / Circumference in km / Variable C
-> - **X-REGISTER** / Period in min / Variable P
-
-![Display results without the VIEW display activated.](assets/Example8.png)
-
-We can compare our results to see how accurate our program runs. The ISS has a mean orbital velocity of 7.66 km/sec which our calculator displays accurately 7,664.601 m/s. While the orbit of the ISS is not a perfect circle, the eccenticity of it's orbit is low enough that using mean values, we can apply the theoretic oribital calculations simplified with a perfectly circular orbit and get very close results.
-
-The charts show how velocity and period change with height around the EARTH, using the program's EARTH constants. Higher orbits are slower and take longer. At about 35,786 km the period equals one sidereal day (D = 1), which is the geostationary orbit; at half that period (D = 0.5) sit the GPS satellites.
+The charts show how velocity and D change with height around the EARTH. Higher orbits are slower and complete fewer revolutions: the ISS makes about 15.5 revolutions per sidereal day, the GPS satellites 2, and a geostationary satellite exactly 1.
 
 ![Circular orbits around EARTH](assets/earth_orbits.svg)
 
-## Solar System Constants
+### 2.3 Choosing the Main Body
 
-The Statefile contains a routine program to store gravitational parameters, radii and relevant distances for planets within the Solar System and the MOON. This program can be run by the user by selecting XEQ A. The values are stored in indirect registers and are available between calculator states and are persistent with CLEAR VAR commands (but not calculator resets, which is why the program is available in the statefile to be run on reboots).
+LBL Z sets the main body for every calculation:
 
-There is some method to the madness of how these values have been stored in the indirect global registers. Universal constants are stored in the -100 series. All other constants are stored in the -900 series. All planets are varied based on their relative position to the SUN in the Solar System (EARTH is always XX3, MARS XX4, JUPITER XX5, etc). The SUN is always XX0 and the MOON (owing to the fact that PLUTO is not present as a plantary body) is assigned XX9.
+- **Flag 0 clear** (default): G and R are set to the EARTH's values with no prompts.
+- **Flag 0 set**: LBL Z prompts **G?** and **R?**. At each prompt, the EARTH's value is in the Y register and the MOON's in the Z register, so `[R↓]` once selects the EARTH and twice selects the MOON. Any other body can be recalled from the Global registers (section 2.4), and a value typed at the prompt is used as entered. Pressing `[R/S]` without changing the prompt keeps the previous value, which makes it quick to run several calculations around the same body.
 
-All gravitational constant values are stored in registers -90X with X being the main body variable outlined above. All radius are stored in registers -91X. And all distances are stored in registers -92X. Note that the distance value for the MOON is from the EARTH and not from the SUN.
+### 2.4 Solar System Constants
+
+LBL A stores gravitational parameters, radii, and distances for the SUN, the planets, and the MOON in Global registers. Global registers are shared by all States and survive CLEAR VARS, but they are cleared by a RESET or firmware update, which is why LBL A is included to restore them.
+
+Universal constants are stored in the −100 series and all other constants in the −900 series. Each body has a fixed digit: the SUN is always X = 0, the planets follow their order from the SUN (MERCURY 1, VENUS 2, EARTH 3, MARS 4, JUPITER 5, SATURN 6, URANUS 7, NEPTUNE 8), and the MOON is 9.
+
+| Register | Contents |
+|----------|----------|
+| −100 | Astronomical unit, 149,597,870.7 km |
+| −101 | Sidereal days per sidereal year, 366.25636 |
+| −102 | Speed of light, 299,792,458 m/s |
+| −90X | Gravitational parameter μ of body X, m³/s² |
+| −91X | Radius of body X, m |
+| −92X | Distance of body X from the SUN, km (−929: MOON from EARTH) |
 
 ![Values for indirect registers.](assets/constants.png)
 
 ![Indirect register map](assets/register_map.svg)
 
-You can find more information how how to use indirect registers and storing these values in the [DM32 User Manual](https://technical.swissmicros.com/dm32/doc/dm32_user_manual.html#indirect_only).
+To recall a constant, for example the SUN's μ:
 
-### Second Sample Problem
+```
+900 [+/-] [STO] [i]
+[RCL] [(i)]
+```
 
-Using the number of sidereal days in a solar year, we wish to know how fast the EARTH rotates the SUN in a perfectly circular orbit and what the circumference of that orbit would be in kilometers. There are 366.2422 sidereal days in a solar year.
-
-Same as in our last problem we have a single variable and wish to know other unknown variables in the orbit equation. For our known variable we have the number of sidereal days, and so we will initiate our orbital calculations by using the **LBL D** routine. We are also going to need to have the G and R values for the SUN because we are calculating the orbit of the EARTH around that main body. For this we are going to use our indirect variables, so be sure to run XEQ A before starting this problem on the calculator.
-
-![Input 366.2422 in the x-register and run the XEQ D program to commence the calculation.](assets/ExampleA.png)
-
-We are prompted for the value of G and for this will we need to use our indirect register. Recall that all gravitational values are stored in -90X and main bodies are varied based on their position relative to the SUN. So the indirect variable for the G value of the SUN is -900 which we input in the x-register (do not worry about the input field) and then press STO i. Now we can call-up the value in this register by pressing RCL (i) and the value is taken up in the x-register and input field. Press R/S to input the value and carry on.
-
-![Inputting the indirect register value and RCL the information for G.](assets/ExampleB.png)
-
-Next, we are prompted for the radius. And same as for the G value we will use the indirect register. Recall that all radius values are stored in registers -91X and since we are calculating with the SUN as the main body, we need to call information from the -910 register. So we follow the steps as above only using -910 and we have the value in the x-register. Pressing R/S inputs the value and the program continues to run.
-
-![Inputting indiret register value and RCL information for R.](assets/ExampleC.png)
-
-Again the four-line display shows us the relevant information. 
-
-![First display with VIEW.](assets/ExampleD.png)
-
-We can see in the VIEW display that the value we inputted for the sidereal days is the same. We close this by pressing R/S and now we have the orbital period in minutes displaying in the x-register.
-
-![The final results of our calcualtion.](assets/ExampleE.png)
-
-We can see that the velocity of EARTH travalling around the SUN is 29,784.708 m/s and the circumference of this orbit is 939,950,152.948. We can actually already see that our calculation is a little off from the real life values because the height of the orbit is less than the official value of one astronomical unit (AU) which is the distance of the EARTH from the SUN (what should be the exact value of this height). But that is okay because we know what is happening here, and it is owning to the fact we are calculating based on a perfectly circular orbit. The difference between the actual value and what our calcaultion produced is 0.466%, so negliable for the purposes of understanding orbital mechanics.
-
-The EARTH has an average velocity around the SUN of 29,784.8 m/s which is very near our calculation. This is owning to the low eccentricity of EARTH's real orbit around the SUN which makes cirular orbit calculations especially for speed and distances much more accurate to real world.
-
-The same formula, V = √(μ ÷ r), gives the circular orbital velocity at each planet's distance from the SUN stored in registers −921 to −928. On a log-log scale the planets fall on a single straight line: velocity falls with the square root of distance.
+The same formula, V = √(μ ÷ r), gives the circular orbital velocity at each planet's distance from the SUN. On a log-log scale the planets fall on a single straight line: velocity falls with the square root of distance.
 
 ![Circular orbital velocity of the planets](assets/planet_velocities.svg)
 
-## Recalculation Feature
+---
 
-With the G and R values for the SUN already stored, we can run any other *Initiator Program* again with any other single variable and simple click R/S to use the same values again. No need to recall i or any registers again. Additionally, the EARTH and MOON values will still be available in the y-register and z-register as before.
+## 3. VARIABLE DEFINITIONS
 
-## Variables and Labels Used
+| Variable | Description |
+|----------|-------------|
+| **G** | Gravitational parameter μ of the main body, m³/s² |
+| **R** | Radius of the main body, m |
+| **H** | Height of the orbit above the body's surface (km displayed) |
+| **V** | Orbital velocity, m/s |
+| **C** | Circumference of the orbit (km displayed) |
+| **P** | Orbital period (minutes displayed) |
+| **D** | Revolutions per sidereal day |
+| **i** | Index register (LBL A and constant recall) |
 
-The following variables are used by this Statefile:
+---
 
-> - Variable C / Circumference
-> - Variable D / Sidereal day
-> - Variable G / Gravitational parameter of main body
-> - Variable H / Orbit height
-> - Variable P / Orbit period
-> - Variable R / Radius of main body
-> - Variable V / Orbit velocity
-> - Variable i / *If indirect register RCL is used*
+## 4. PROGRAM DESCRIPTIONS
 
-The following labels are used by this Statefile:
+### 4.1 Initiator Programs
 
-> - *Label O / Display sub-routine*
-> - *Label Z / Constant sub-routine*
-> - **Label H / Height initiator program**
-> - **Label V / Velocity initiator program**
-> - **Label P / Period initiator program**
-> - **Label D / Sidereal day initiator program**
-> - **Label C / Circumference initiator program**
-> - Label A / Solar System constants routine
+| Label | Known value | Prompt | Units |
+|-------|-------------|--------|-------|
+| **H** | Height above the main body | H? | km |
+| **V** | Orbital velocity | V? | m/s |
+| **C** | Circumference | C? | km |
+| **P** | Period | P? | minutes |
+| **D** | Revolutions per sidereal day | D? | (none) |
+
+Each initiator then runs LBL Z (G? and R? prompts if Flag 0 is set) and finishes with the results display.
+
+**Outputs (Stack display from top to bottom):**
+- T: Circumference, km
+- Z: Height, km
+- Y: Velocity, m/s
+- X: Period, minutes
+- VIEW: D, revolutions per sidereal day (press `[R/S]` to continue)
+
+### 4.2 Supporting Programs
+
+- **LBL A:** Stores the Solar System constants in Global registers (run once after loading or after a RESET)
+- **LBL Z:** Sets the main body (internal)
+- **LBL R:** Converts results to display units, then runs LBL O (internal; do not run on its own, as it converts again)
+- **LBL O:** Displays the results (can be run on its own to display the last results again)
+
+---
+
+## 5. OPERATING INSTRUCTIONS
+
+### 5.1 Calculating an Orbit Around the EARTH
+
+**Procedure:**
+```
+1. Press [XEQ] and the initiator letter (H, V, C, P, or D)
+2. Key in the known value at the prompt and press [R/S]
+3. D is displayed; press [R/S] to see the results on the stack
+```
+
+### 5.2 Calculating an Orbit Around Another Body
+
+**Procedure:**
+```
+1. Press [SF] [0]
+2. Press [XEQ] and the initiator letter
+3. Key in the known value and press [R/S]
+4. At G?: [R↓] for EARTH, [R↓] [R↓] for MOON, or recall
+   another body's μ (e.g. 900 [+/-] [STO] [i] [RCL] [(i)]); press [R/S]
+5. At R?: select the matching radius the same way
+   (e.g. 910 [+/-] [STO] [i] [RCL] [(i)]); press [R/S]
+6. D is displayed; press [R/S] to see the results
+```
+
+Flag 0 stays set until cleared with `[CF] [0]`, which returns the programs to the EARTH defaults.
+
+---
+
+## 6. EXAMPLE CALCULATIONS
+
+Results are shown in FIX 6, the display format saved in the Statefile.
+
+### 6.1 International Space Station
+
+**Problem:** The ISS orbits at a mean height of about 407 km. Find its velocity, circumference, period, and revolutions per sidereal day.
+
+**Solution:**
+```
+[XEQ] [H]
+H?  407 [R/S]
+D=15.490927   [R/S]
+```
+
+**Results (displayed on screen from top to bottom):**
+
+| Register | Value | Meaning |
+|----------|-------|---------|
+| T | 42,632.273106 | Circumference, km |
+| Z | 407.000000 | Height, km |
+| Y | 7,664.601457 | Velocity, m/s |
+| X | 92.703827 | Period, minutes |
+
+**Interpretation:** The ISS travels at about 7.66 km/s and circles the EARTH in 92.7 minutes, about 15.5 times per sidereal day. Its orbit is not perfectly circular, but its eccentricity is low enough that the circular-orbit values are very close to the real ones.
+
+**Any initiator gives the same orbit.** Entering any of the results above in its own initiator returns the same height of 407.000000 km:
+
+| Keys | Prompt input |
+|------|--------------|
+| `[XEQ] [V]` | 7664.601457 |
+| `[XEQ] [C]` | 42632.273106 |
+| `[XEQ] [P]` | 92.703827 |
+
+### 6.2 Geostationary Orbit
+
+**Problem:** At what height does a satellite complete exactly one revolution per sidereal day?
+
+**Solution:**
+```
+[XEQ] [D]
+D?  1 [R/S]
+D=1.000000    [R/S]
+```
+
+**Results:**
+
+| Register | Value | Meaning |
+|----------|-------|---------|
+| T | 264,925.291089 | Circumference, km |
+| Z | 35,786.032627 | Height, km |
+| Y | 3,074.660100 | Velocity, m/s |
+| X | 1,436.068175 | Period, minutes |
+
+**Interpretation:** A satellite 35,786 km above the equator keeps pace with the EARTH's rotation and appears fixed in the sky.
+
+### 6.3 The EARTH Around the SUN
+
+**Problem:** The EARTH completes one orbit of the SUN in 366.25636 sidereal days, so it makes 1 ÷ 366.25636 revolutions per sidereal day. Treating its orbit as a circle, find its distance and speed.
+
+**Solution:**
+```
+[SF] [0]
+[XEQ] [D]
+D?  101 [+/-] [STO] [i] [RCL] [(i)] [1/x] [R/S]     (1 ÷ 366.25636)
+G?  900 [+/-] [STO] [i] [RCL] [(i)] [R/S]           (SUN μ)
+R?  910 [+/-] [STO] [i] [RCL] [(i)] [R/S]           (SUN radius)
+D=0.002730    [R/S]
+```
+
+**Results:**
+
+| Register | Value | Meaning |
+|----------|-------|---------|
+| T | 939,950,152.947581 | Circumference, km |
+| Z | 148,901,371.101591 | Height above the SUN's surface, km |
+| Y | 29,784.707521 | Velocity, m/s |
+| X | 525,969.102487 | Period, minutes |
+
+**Interpretation:** The height is measured from the SUN's surface. Adding the SUN's radius of 696,342 km gives an orbit radius of 149,597,713 km, within 158 km (0.0001%) of the astronomical unit stored in register −100. The low eccentricity of the EARTH's orbit makes the circular-orbit values a close match for its real distance and its mean speed of about 29.78 km/s.
+
+### 6.4 Low Lunar Orbit
+
+**Problem:** Find the velocity and period of a spacecraft orbiting 100 km above the MOON.
+
+**Solution:**
+```
+[SF] [0]
+[XEQ] [H]
+H?  100 [R/S]
+G?  [R↓] [R↓] [R/S]          (MOON μ)
+R?  [R↓] [R↓] [R/S]          (MOON radius)
+D=12.194650   [R/S]
+```
+
+**Results:**
+
+| Register | Value | Meaning |
+|----------|-------|---------|
+| T | 11,542.839728 | Circumference, km |
+| Z | 100.000000 | Height, km |
+| Y | 1,633.637505 | Velocity, m/s |
+| X | 117.762148 | Period, minutes |
+
+**Interpretation:** At 1.63 km/s, a spacecraft circles the MOON in just under two hours, close to the orbit flown by the APOLLO command modules.
+
+---
+
+## 7. QUICK REFERENCE
+
+### 7.1 Program Summary
+
+| Label | Function |
+|-------|----------|
+| **H** | Orbit from height (km) |
+| **V** | Orbit from velocity (m/s) |
+| **C** | Orbit from circumference (km) |
+| **P** | Orbit from period (minutes) |
+| **D** | Orbit from revolutions per sidereal day |
+| **A** | Store Solar System constants |
+| **O** | Display the last results again |
+
+### 7.2 Results
+
+| Register | Value |
+|----------|-------|
+| VIEW | D, revolutions per sidereal day |
+| T | Circumference, km |
+| Z | Height, km |
+| Y | Velocity, m/s |
+| X | Period, minutes |
+
+### 7.3 Important Notes
+
+- With Flag 0 clear, every calculation is around the EARTH; set Flag 0 to choose another body
+- Height is measured from the main body's surface; add R for the distance from its centre
+- Run LBL A after loading the Statefile and after any RESET or firmware update
+- D is revolutions per sidereal day; enter 1 ÷ (period in sidereal days) for long orbits
+- Do not run LBL R directly; it would convert the stored values a second time
+- Calculations assume a circular orbit; for low-eccentricity orbits the results are close to real values
+
+---
+
+## 8. PROGRAM LISTING
+
+The complete program listing is provided below. Program steps are shown in standard DM32 RPN format with label-relative line numbers, as displayed on the calculator. The DM32 does not generate checksums.
+
+### LBL O - Results Display
+
+```
+O01  LBL O                  Results display.
+O02  RCL P                  Period,
+O03  RCL C                  circumference,
+O04  RCL H                  height,
+O05  RCL V                  velocity,
+O06  RCL P                  period: stack T: C, Z: H, Y: V, X: P.
+O07  VIEW D                 Displays D; press R/S.
+O08  RTN
+```
+
+### LBL R - Display Units
+
+```
+R01  LBL R                  Converts results to display units.
+R02  RCL P
+R03  60
+R04  ÷                      Period, s to minutes.
+R05  STO P
+R06  RCL H
+R07  1000
+R08  ÷                      Height, m to km.
+R09  STO H
+R10  RCL C
+R11  1000
+R12  ÷                      Circumference, m to km.
+R13  STO C
+R14  GTO O                  Displays results.
+```
+
+### LBL Z - Main-Body Constants
+
+```
+Z01  LBL Z                  Main-body constants.
+Z02  CLx
+Z03  ENTER
+Z04  4.902800118E12         μ of MOON, m³/s².
+Z05  3.9860044188E14        μ of EARTH, m³/s².
+Z06  FS? 0                  Flag 0 set?
+Z07  INPUT G                Then prompts for μ.
+Z08  STO G                  Stores μ in G (EARTH if not prompted).
+Z09  CLx
+Z10  ENTER
+Z11  ENTER
+Z12  1737100                Radius of MOON, m.
+Z13  6378137                Radius of EARTH, m.
+Z14  FS? 0                  Flag 0 set?
+Z15  INPUT R                Then prompts for radius.
+Z16  STO R                  Stores radius in R.
+Z17  RTN
+```
+
+### LBL H - Height Initiator
+
+```
+H01  LBL H                  Initiator: height known.
+H02  INPUT H                Prompts for height, km.
+H03  1000
+H04  ×                      km to m.
+H05  STO H
+H06  XEQ Z                  Main-body constants.
+H07  SQRT(G÷(R+H))          Velocity, m/s.
+H08  STO V
+H09  (2×π)×(R+H)            Circumference, m.
+H10  STO C
+H11  (2×π)×SQRT((R+H)^3÷G)  Period, s.
+H12  STO P
+H13  (P÷86164.0905)
+H14  1/x                    Revolutions per sidereal day.
+H15  STO D
+H16  GTO R                  Converts and displays.
+```
+
+### LBL V - Velocity Initiator
+
+```
+V01  LBL V                  Initiator: velocity known.
+V02  INPUT V                Prompts for velocity, m/s.
+V03  XEQ Z                  Main-body constants.
+V04  (G÷V^2)-R              Height, m.
+V05  STO H
+V06  (2×π)×(R+H)            Circumference, m.
+V07  STO C
+V08  (2×π)×SQRT((R+H)^3÷G)  Period, s.
+V09  STO P
+V10  (P÷86164.0905)
+V11  1/x                    Revolutions per sidereal day.
+V12  STO D
+V13  GTO R                  Converts and displays.
+```
+
+### LBL P - Period Initiator
+
+```
+P01  LBL P                  Initiator: period known.
+P02  INPUT P                Prompts for period, minutes.
+P03  60
+P04  ×                      Minutes to s.
+P05  STO P
+P06  XEQ Z                  Main-body constants.
+P07  RCL P
+P08  2
+P09  π
+P10  ×
+P11  ÷                      P ÷ 2π.
+P12  x²
+P13  RCL G
+P14  ×                      μ(P ÷ 2π)².
+P15  3
+P16  ˣ√y                    Orbit radius r.
+P17  RCL R
+P18  -                      Height, m.
+P19  STO H
+P20  SQRT(G÷(R+H))          Velocity, m/s.
+P21  STO V
+P22  (2×π)×(R+H)            Circumference, m.
+P23  STO C
+P24  (P÷86164.0905)
+P25  1/x                    Revolutions per sidereal day.
+P26  STO D
+P27  GTO R                  Converts and displays.
+```
+
+### LBL D - Revolutions Initiator
+
+```
+D01  LBL D                  Initiator: revolutions per sidereal day.
+D02  INPUT D                Prompts for D.
+D03  1/x
+D04  STO D                  Stores 1 ÷ D.
+D05  XEQ Z                  Main-body constants.
+D06  D×86164.0905           Period, s.
+D07  STO P
+D08  2
+D09  π
+D10  ×
+D11  ÷                      P ÷ 2π.
+D12  x²
+D13  RCL G
+D14  ×                      μ(P ÷ 2π)².
+D15  3
+D16  ˣ√y                    Orbit radius r.
+D17  RCL R
+D18  -                      Height, m.
+D19  STO H
+D20  SQRT(G÷(R+H))          Velocity, m/s.
+D21  STO V
+D22  (2×π)×(R+H)            Circumference, m.
+D23  STO C
+D24  RCL D
+D25  1/x                    Restores D.
+D26  STO D
+D27  GTO R                  Converts and displays.
+```
+
+### LBL C - Circumference Initiator
+
+```
+C01  LBL C                  Initiator: circumference known.
+C02  INPUT C                Prompts for circumference, km.
+C03  1000
+C04  ×                      km to m.
+C05  STO C
+C06  XEQ Z                  Main-body constants.
+C07  C÷(2×π)-R              Height, m.
+C08  STO H
+C09  SQRT(G÷(R+H))          Velocity, m/s.
+C10  STO V
+C11  (2×π)×SQRT((R+H)^3÷G)  Period, s.
+C12  STO P
+C13  (P÷86164.0905)
+C14  1/x                    Revolutions per sidereal day.
+C15  STO D
+C16  GTO R                  Converts and displays.
+```
+
+### LBL A - Solar System Constants
+
+```
+A01  LBL A                  Solar System constants.
+A02  -100
+A03  STO i
+A04  149597870.7            Astronomical unit, km.
+A05  STO(i)
+A06  -101
+A07  STO i
+A08  366.25636              Sidereal days per sidereal year.
+A09  STO(i)
+A10  -900                   μ of SUN through MOON,
+A11  STO i                  registers -900 to -909.
+A12  1.327124400189E20
+A13  STO(i)
+A14  -901
+A15  STO i
+A16  2.203209E13
+A17  STO(i)
+A18  -902
+A19  STO i
+A20  3.248585926E14
+A21  STO(i)
+A22  -903
+A23  STO i
+A24  3.9860044188E14
+A25  STO(i)
+A26  -904
+A27  STO i
+A28  4.2828372E13
+A29  STO(i)
+A30  -905
+A31  STO i
+A32  1.266865349E17
+A33  STO(i)
+A34  -906
+A35  STO i
+A36  3.79311879E16
+A37  STO(i)
+A38  -907
+A39  STO i
+A40  5.7939399E15
+A41  STO(i)
+A42  -908
+A43  STO i
+A44  6.8365299E15
+A45  STO(i)
+A46  -909
+A47  STO i
+A48  4.902800118E12
+A49  STO(i)
+A50  -910                   Radius of SUN through MOON,
+A51  STO i                  registers -910 to -919.
+A52  696342000
+A53  STO(i)
+A54  -911
+A55  STO i
+A56  2440000
+A57  STO(i)
+A58  -912
+A59  STO i
+A60  6051800
+A61  STO(i)
+A62  -913
+A63  STO i
+A64  6378137
+A65  STO(i)
+A66  -914
+A67  STO i
+A68  3396200
+A69  STO(i)
+A70  -915
+A71  STO i
+A72  71492000
+A73  STO(i)
+A74  -916
+A75  STO i
+A76  60268000
+A77  STO(i)
+A78  -917
+A79  STO i
+A80  25559000
+A81  STO(i)
+A82  -918
+A83  STO i
+A84  24764000
+A85  STO(i)
+A86  -919
+A87  STO i
+A88  1737100
+A89  STO(i)
+A90  -921                   Distance of MERCURY through
+A91  STO i                  NEPTUNE from SUN, -921 to -928.
+A92  57910000
+A93  STO(i)
+A94  -922
+A95  STO i
+A96  108200000
+A97  STO(i)
+A98  -923
+A99  STO i
+A100 149600000
+A101 STO(i)
+A102 -924
+A103 STO i
+A104 227900000
+A105 STO(i)
+A106 -925
+A107 STO i
+A108 778500000
+A109 STO(i)
+A110 -926
+A111 STO i
+A112 1433449370
+A113 STO(i)
+A114 -927
+A115 STO i
+A116 2871000000
+A117 STO(i)
+A118 -928
+A119 STO i
+A120 4500000000
+A121 STO(i)
+A122 -929                   Distance of MOON from EARTH, -929.
+A123 STO i
+A124 384400
+A125 STO(i)
+A126 CLx                    Clears stack.
+A127 ENTER
+A128 ENTER
+A129 ENTER
+A130 RTN
+```
+
+---
 
 ## Dedication
 
