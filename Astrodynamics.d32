@@ -8,7 +8,7 @@
 
 # MODE
 MTRIG: DEG
-MFMT: FIX 4
+MFMT: FIX 6
 
 # EQUATION LIST
 EQNPTR: 0
@@ -19,26 +19,46 @@ EQNEND
 PTR: 0
 PGM
   LBL O
+  RCL P
+  RCL C
   RCL H
   RCL V
-  RCL C
   RCL P
   VIEW D
   RTN
+  LBL R
+  RCL P
+  60
+  \div;
+  STO P
+  RCL H
+  1000
+  \div;
+  STO H
+  RCL C
+  1000
+  \div;
+  STO C
+  GTO O
   LBL Z
   CLx
   ENTER
   4.902800118E12
   3.9860044188E14
+  FS? 0
   INPUT G
+  STO G
   CLx
   ENTER
   ENTER
   1737100
   6378137
+  FS? 0
   INPUT R
+  STO R
   RTN
   LBL H
+  INPUT H
   1000
   \mul;
   STO H
@@ -50,22 +70,11 @@ PGM
   EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
   STO P
   EQN: ( P \div; 86164.0905 )
+  1/x
   STO D
-  RCL H
-  1000
-  \div;
-  STO H
-  RCL C
-  1000
-  \div;
-  STO C
-  RCL P
-  60
-  \div;
-  STO P
-  GTO O
+  GTO R
   LBL V
-  STO V
+  INPUT V
   XEQ Z
   EQN: ( G \div; V ^ 2 ) - R
   STO H
@@ -74,21 +83,11 @@ PGM
   EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
   STO P
   EQN: ( P \div; 86164.0905 )
+  1/x
   STO D
-  RCL H
-  1000
-  \div;
-  STO H
-  RCL C
-  1000
-  \div;
-  STO C
-  RCL P
-  60
-  \div;
-  STO P
-  GTO O
+  GTO R
   LBL P
+  INPUT P
   60
   \mul;
   STO P
@@ -111,21 +110,12 @@ PGM
   EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
   STO C
   EQN: ( P \div; 86164.0905 )
+  1/x
   STO D
-  RCL H
-  1000
-  \div;
-  STO H
-  RCL C
-  1000
-  \div;
-  STO C
-  RCL P
-  60
-  \div;
-  STO P
-  GTO O
+  GTO R
   LBL D
+  INPUT D
+  1/x
   STO D
   XEQ Z
   EQN: D \mul; 86164.0905
@@ -146,20 +136,12 @@ PGM
   STO V
   EQN: ( 2 \mul; \pi; ) \mul; ( R + H )
   STO C
-  RCL H
-  1000
-  \div;
-  STO H
-  RCL C
-  1000
-  \div;
-  STO C
-  RCL P
-  60
-  \div;
-  STO P
-  GTO O
+  RCL D
+  1/x
+  STO D
+  GTO R
   LBL C
+  INPUT C
   1000
   \mul;
   STO C
@@ -171,20 +153,9 @@ PGM
   EQN: ( 2 \mul; \pi; ) \mul; SQRT( ( R + H ) ^ 3 \div; G )
   STO P
   EQN: ( P \div; 86164.0905 )
+  1/x
   STO D
-  RCL H
-  1000
-  \div;
-  STO H
-  RCL C
-  1000
-  \div;
-  STO C
-  RCL P
-  60
-  \div;
-  STO P
-  GTO O
+  GTO R
   LBL A
   -100
   STO i
@@ -193,10 +164,6 @@ PGM
   -101
   STO i
   366.25636
-  STO\blpar;i\brpar;
-  -102
-  STO i
-  299792458
   STO\blpar;i\brpar;
   -900
   STO i
